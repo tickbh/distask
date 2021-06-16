@@ -26,8 +26,14 @@ from distask.tiggers.interval import IntervalTigger
 def test1(times, aa=None, bb=None):
     print("test---------------------", util.time_now())
 
-def test0(times, aa=None, bb=None, *args):
+def test00(times, aa=None, bb=None, *args):
     print("test0 ======================")
+    time.sleep(0.1)
+    # return True
+
+def test_exception(times, aa=None, bb=None, *args):
+    print("test0 ======================")
+    a = 1 / 0
     # return True
 
 def testcron(times, aa=None, bb=None):
@@ -53,7 +59,10 @@ lock = RLLock(reentrant=True, connection_details=connection_details, ttl=10_000)
 # scheduler = Scheduler(store=mongodb, lock=lock, group="", limit=1, maxwait=5)
 scheduler = Scheduler(store=mongodb, lock=lock, groups=['test'], limit=1, maxwait=5)
 
-job = task.Job("interval", test0, (12, 123), group="test", subgroup="ssss", seconds=3)
+job = task.Job("interval", test00, (12, 123), group="test", subgroup="ssss", seconds=3)
+scheduler.add_job(job)
+
+job = task.Job("interval", test_exception, (12, 123), group="test", subgroup="ssss", seconds=3)
 scheduler.add_job(job)
 
 def job_execute(event):

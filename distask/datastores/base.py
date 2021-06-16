@@ -11,11 +11,15 @@ class DataStore(ABC):
     @abstractmethod
     def get_all_jobs(self, scheduler) -> List:
         return None
-        
+
     @abstractmethod
     def modify_job(self, job, update):
         return None
 
     @abstractmethod
     def remove_job(self, job):
+        return None
+
+    @abstractmethod
+    def record_job_exec(self, status, job, duration=0, runtimes=1, excetion=None):
         return None

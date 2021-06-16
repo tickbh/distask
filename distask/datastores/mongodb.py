@@ -9,6 +9,7 @@ from pymongo import ASCENDING, DeleteOne, MongoClient, UpdateOne
 from pymongo.collection import Collection
 from pymongo.errors import DuplicateKeyError
 
+from distask import util
 from distask.serializers.base import Serializer
 from distask.task import DeserializationError, Job
 from distask.datastores.base import DataStore
@@ -17,8 +18,7 @@ from distask.datastores.base import DataStore
 class MongoDataStore(DataStore):
     def __init__(self, client: MongoClient, *, serializer: Optional[Serializer] = None,
                 database: str = 'distask', schedules: str = 'schedules',
-                jobs: str = 'jobs', lock_expiration_delay: float = 30,
-                max_poll_time: Optional[float] = 1, start_from_scratch: bool = False):
+                jobs: str = 'jobs'):
         self._client = client
         self._database = database
         self._serializer = serializer
@@ -140,3 +140,16 @@ class MongoDataStore(DataStore):
             return self._reconstitute_job(row)
         except Exception:
             return None
+
+    def record_job_exec(self, status, job, duration=0, runtimes=1, excetion=''):
+        self._schedules.insert_one({
+            'job_id': job.job_id,
+            'group': job.group,
+            'subgroup': job.subgroup,
+            'status_time': util.micro_now(),
+            'status': status,
+            'duration': duration,
+            'runtimes': runtimes,
+            'excetion': excetion
+        })
+        return None

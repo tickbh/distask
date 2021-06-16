@@ -65,8 +65,13 @@ class Scheduler(ABC):
                 self._store.modify_job(job, changes)
         for job in jobs:
             try:
-                job.next_time, job.close_now = job.call_func()
+                start = util.micro_now()
+                tiggers = job.get_next_time()
+                job.next_time, job.close_now = job.call_func(tiggers)
+                self._store.record_job_exec("success", job, util.micro_now() - start, len(tiggers))
             except Exception as e:
+                job.next_time = tiggers[-1]
+                self._store.record_job_exec("failed", job, util.micro_now() - start, 0, str(e))
                 logging.warning("run job %s catch exception(%s)" % (job.job_id, e))
 
         with self._lock.create_lock(60_000) as succ:

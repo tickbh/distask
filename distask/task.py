@@ -58,8 +58,11 @@ class Job:
         self.subgroup = subgroup
         self.status_last_time = status_last_time
 
-    def call_func(self):
-        tiggers = self.tigger.get_next_time(self.next_time)
+    def get_next_time(self):
+        return self.tigger.get_next_time(self.next_time)
+
+    def call_func(self, tiggers=None):
+        if not tiggers: tiggers = self.get_next_time()
         is_close = self.func(tiggers, *self.args, self.group, self.subgroup)
         return tiggers[-1], is_close
 
