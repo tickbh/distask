@@ -1,0 +1,1 @@
+from distask.locks.base import BaseLock
