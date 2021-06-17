@@ -101,8 +101,12 @@ class Scheduler(ABC):
         return jobs
 
     def add_job(self, job: Job):
-        self._store.add_job(job)
-        self._dispatch_event(JobEvent(EVENT_JOB_ADDED, job.job_id))
+        try:
+            self._store.add_job(job)
+            self._dispatch_event(JobEvent(EVENT_JOB_ADDED, job.job_id))
+        except Exception as e:
+            logging.warning("add job failed reason by '%s'" % str(e))
+            pass
 
     def remove_job(self, job):
         remove_job = self._store.remove_job({
@@ -152,7 +156,12 @@ class Scheduler(ABC):
         while self.state != STATE_STOPPED:
             self._event.wait(wait_seconds)
             self._event.clear()
-            wait_seconds = self._process_jobs()
+            try:
+                wait_seconds = self._process_jobs()
+            except KeyboardInterrupt:
+                raise
+            except Exception as e:
+                logging.warning("process job exception '%s'" % str(e))
 
     def wakeup(self):
         self._event.set()

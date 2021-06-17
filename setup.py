@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="distask",
-    version="0.1",
+    version="0.1.1",
     keywords="distribute scheduling cron",
     description="a distribute task scheduler ",
     long_description="file: README.rst",

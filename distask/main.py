@@ -11,7 +11,7 @@ sys.path.append(base_path)
 sys.path.append(base_path + '/..')
 sys.path.append(os.pardir)  # 为了导入父目录的文件而进行的设定
 
-from distask import task
+from distask import task, register_job
 from distask import util
 from distask.datastores.mongodb import MongoDataStore
 from distask.events import EVENT_SCHEDULER_START
@@ -22,9 +22,6 @@ from distask.serializers.json import JSONSerializer
 from distask.serializers.pickle import PickleSerializer
 from distask.tiggers.interval import IntervalTigger
 
-
-def test1(times, aa=None, bb=None):
-    print("test---------------------", util.time_now())
 
 def test00(times, aa=None, bb=None, *args):
     print("test0 ======================")
@@ -59,10 +56,15 @@ lock = RLLock(reentrant=True, connection_details=connection_details, ttl=10_000)
 # scheduler = Scheduler(store=mongodb, lock=lock, group="", limit=1, maxwait=5)
 scheduler = Scheduler(store=mongodb, lock=lock, groups=['test'], limit=1, maxwait=5)
 
-job = task.Job("interval", test00, (12, 123), group="test", subgroup="ssss", seconds=3)
+
+@register_job(scheduler, "interval", args=(12, 123), group="test", subgroup="ssss", seconds=3)
+def test1(times, aa=None, bb=None):
+    print("test---------------------", util.time_now())
+
+job = task.Job(test00, "interval", (12, 123), group="test", subgroup="ssss", seconds=3)
 scheduler.add_job(job)
 
-job = task.Job("interval", test_exception, (12, 123), group="test", subgroup="ssss", seconds=3)
+job = task.Job(test_exception, "interval", (12, 123), group="test", subgroup="ssss", seconds=3)
 scheduler.add_job(job)
 
 def job_execute(event):

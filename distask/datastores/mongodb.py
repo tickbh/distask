@@ -17,13 +17,16 @@ from distask.datastores.base import DataStore
 
 class MongoDataStore(DataStore):
     def __init__(self, client: MongoClient, *, serializer: Optional[Serializer] = None,
-                database: str = 'distask', schedules: str = 'schedules',
-                jobs: str = 'jobs'):
+                database: str = 'distask', 
+                schedules: str = 'schedules',
+                jobs: str = 'jobs',
+                store_status: bool = True):
         self._client = client
         self._database = database
         self._serializer = serializer
         self._schedules = client[self._database][schedules]
         self._jobs = client[self._database][jobs]
+        self._store_status = store_status
 
         self._create_index()
 
@@ -142,6 +145,8 @@ class MongoDataStore(DataStore):
             return None
 
     def record_job_exec(self, status, job, duration=0, runtimes=1, excetion=''):
+        if not self._store_status:
+            return
         self._schedules.insert_one({
             'job_id': job.job_id,
             'group': job.group,
