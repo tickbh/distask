@@ -1,5 +1,9 @@
 from dataclasses import dataclass
-from pickle import dumps, loads
+try:
+    from dill import dumps, loads
+except:
+    print("import error bill")
+    from pickle import dumps, loads
 
 from distask.serializers.base import Serializer
 

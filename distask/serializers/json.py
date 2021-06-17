@@ -1,4 +1,6 @@
 from dataclasses import dataclass, field
+from traceback import print_exc
+from distask.util import obj_to_ref, ref_to_obj
 from json import dumps, loads
 from typing import Any, Callable, Dict, Tuple
 
@@ -47,6 +49,7 @@ def unmarshal_object(ref: str, state):
 @dataclass
 class JSONSerializer(Serializer):
     magic_key: str = '_distask_json'
+    magic_func_key: str = '_distask_func_json'
     dump_options: Dict[str, Any] = field(default_factory=dict)
     load_options: Dict[str, Any] = field(default_factory=dict)
 
@@ -59,7 +62,8 @@ class JSONSerializer(Serializer):
         if hasattr(obj, '__getstate__'):
             cls_ref, state = marshal_object(obj)
             return {cls.magic_key: [cls_ref, state]}
-
+        if hasattr(obj, '__qualname__'):
+            return {cls.magic_func_key: obj_to_ref(obj)}
         raise TypeError(f'Object of type {obj.__class__.__name__!r} is not JSON serializable')
 
     @classmethod
@@ -67,7 +71,9 @@ class JSONSerializer(Serializer):
         if cls.magic_key in obj_state:
             ref, *rest = obj_state[cls.magic_key]
             return unmarshal_object(ref, *rest)
-
+        if cls.magic_func_key in obj_state:
+            ref  = obj_state[cls.magic_func_key]
+            return ref_to_obj(ref)
         return obj_state
 
     def serialize(self, obj) -> bytes:

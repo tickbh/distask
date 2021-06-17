@@ -1,15 +1,17 @@
 from setuptools import setup, find_packages
+import pathlib
+here = pathlib.Path(__file__).parent
+txt = (here / 'README.rst').read_text()
 
 setup(
     name="distask",
-    version="0.1.1",
+    version="0.1.2",
     keywords="distribute scheduling cron",
     description="a distribute task scheduler ",
-    long_description="file: README.rst",
+    long_description=txt,
     license="MIT Licence",
     author="tickbh",
     author_email="tickdream125@hotmail.com",
-    # packages=find_packages("distask"),
     packages=[
         'distask', 
         'distask/locks', 
@@ -27,4 +29,8 @@ setup(
         'redlock',
         'pymongo'
     ],
+    extras_require={
+        'extra': ['dill']
+    }
+
 )

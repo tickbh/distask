@@ -11,7 +11,7 @@ sys.path.append(base_path)
 sys.path.append(base_path + '/..')
 sys.path.append(os.pardir)  # 为了导入父目录的文件而进行的设定
 
-from distask import task, register_job
+from distask import create_scheduler, task, register_job
 from distask import util
 from distask.datastores.mongodb import MongoDataStore
 from distask.events import EVENT_SCHEDULER_START
@@ -42,8 +42,8 @@ tigger = IntervalTigger(seconds=100)
 
 # job = task.Job()
 
-serialize = PickleSerializer()
-# serialize = JSONSerializer()
+# serialize = PickleSerializer()
+serialize = JSONSerializer()
 client = MongoClient("mongodb://admin:123456@192.168.99.27:27017")
 mongodb = MongoDataStore(client, serializer=serialize)
 # connection_details=[
@@ -54,11 +54,21 @@ connection_details=[
 ]
 lock = RLLock(reentrant=True, connection_details=connection_details, ttl=10_000)
 # scheduler = Scheduler(store=mongodb, lock=lock, group="", limit=1, maxwait=5)
-scheduler = Scheduler(store=mongodb, lock=lock, groups=['test'], limit=1, maxwait=5)
-
+# scheduler = Scheduler(store=mongodb, lock=lock, groups=['test'], limit=1, maxwait=5)
+client_data = {
+    "t": "mongo",
+    "args": ["mongodb://admin:123456@192.168.99.27:27017"]
+}
+lock_data = {
+    "t": "rllock",
+    "reentrant":True, 
+    "connection_details":connection_details, 
+    "ttl":10_000
+}
+scheduler = create_scheduler(client_data, lock_data, serialize="pickle", groups=['test'], limit=1, maxwait=5)
 
 @register_job(scheduler, "interval", args=(12, 123), group="test", subgroup="ssss", seconds=3)
-def test1(times, aa=None, bb=None):
+def test1(times, aa=None, bb=None, *args):
     print("test---------------------", util.time_now())
 
 job = task.Job(test00, "interval", (12, 123), group="test", subgroup="ssss", seconds=3)
