@@ -1,12 +1,14 @@
+
+
 a distribute task scheduler
 
 # example
-from distask import create_scheduler, task, register_job
 
 ```python
+from distask import create_scheduler, task, register_job
 client_data = {
     "t": "mongo",
-    "args": ["mongodb://admin:123456@192.168.99.27:27017"]
+    "args": ["mongodb://admin:123456@127.0.0.1:27017"]
 }
 lock_data = {
     "t": "rllock",
@@ -21,3 +23,5 @@ def test1(times, aa=None, bb=None, *args):
     print("test---------------------", util.time_now())
 
 ```
+
+because pickle not support lamba function, if you choose serialize type 'pickle' please install 'dill'

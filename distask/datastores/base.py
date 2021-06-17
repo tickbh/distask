@@ -17,6 +17,10 @@ class DataStore(ABC):
         return None
 
     @abstractmethod
+    def add_job(self, job):
+        return None
+
+    @abstractmethod
     def remove_job(self, job):
         return None
 

@@ -1,14 +1,18 @@
 from setuptools import setup, find_packages
-import pathlib
-here = pathlib.Path(__file__).parent
-txt = (here / 'README.rst').read_text()
+from os import path
+here = path.abspath(path.dirname(__file__))
+
+# Get the long description from the relevant file
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 setup(
     name="distask",
-    version="0.1.2",
+    version="0.1.3",
     keywords="distribute scheduling cron",
     description="a distribute task scheduler ",
-    long_description=txt,
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     license="MIT Licence",
     author="tickbh",
     author_email="tickdream125@hotmail.com",

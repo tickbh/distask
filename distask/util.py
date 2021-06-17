@@ -17,6 +17,10 @@ def time_now():
 def micro_now():
     return int(time.time() * 1000)
 
+# 2050年1月1日
+def micro_max():
+    return int(2524579200_000)
+
 try:
     from threading import TIMEOUT_MAX
 except ImportError:
@@ -246,3 +250,18 @@ def ref_to_obj(ref):
     except Exception:
         raise LookupError('Error resolving reference %s: error looking up object' % ref)
 
+def bytes_to_str(b):
+    if type(b) == str:
+        return b
+    return bytes.decode(b, "utf-8")
+
+def bytes_to_int(b):
+    if type(b) == int:
+        return b
+    # s = bytes_to_str(b)
+    return int(b)
+
+def str_to_bytes(s):
+    if type(s) == bytes:
+        return s
+    return s.encode(encoding="utf-8")

@@ -20,7 +20,7 @@ class MongoDataStore(DataStore):
                 database: str = 'distask', 
                 schedules: str = 'schedules',
                 jobs: str = 'jobs',
-                store_status: bool = True):
+                store_status: bool = True, **kwargs):
         self._client = client
         self._database = database
         self._serializer = serializer
@@ -52,6 +52,7 @@ class MongoDataStore(DataStore):
 
 
     def get_all_jobs(self, scheduler) -> List:
+        return self.get_jobs(scheduler, util.micro_max())
         jobs: List[Job] = []
         filters = {}
         if len(scheduler._groups): filters["group"] = {"$in": scheduler._groups}

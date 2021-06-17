@@ -161,6 +161,8 @@ class Scheduler(ABC):
             except KeyboardInterrupt:
                 raise
             except Exception as e:
+                import traceback
+                traceback.print_exc()
                 logging.warning("process job exception '%s'" % str(e))
 
     def wakeup(self):

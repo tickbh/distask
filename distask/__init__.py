@@ -30,6 +30,16 @@ def create_scheduler(client_data, lock_data, serialize="json", **kwargs):
                 store = MongoDataStore(client, serializer=serialize)
             except:
                 raise
+        elif cliet_type == "redis":
+            try:
+                from redis import Redis
+                from distask.datastores.redis import RedisDataStore
+                args = client_data.pop("args", [])
+                client = Redis(*args, **client_data)
+                store = RedisDataStore(client, serializer=serialize, **client_data)
+            except:
+                raise
+            
     assert store, "must store client exist"
     lock = None
     if isinstance(lock_data, BaseLock):

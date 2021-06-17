@@ -40,6 +40,12 @@ def testcron(times, aa=None, bb=None):
 logging.basicConfig(level=logging.DEBUG)
 tigger = IntervalTigger(seconds=100)
 
+# import re
+# s = "ssss:aaaa:_main_.test"
+# res = re.match(r'^(\w+):(\w+):(\w.*)$',s)
+# print(res)
+# print(res.groups())
+# exit(0)
 # job = task.Job()
 
 # serialize = PickleSerializer()
@@ -59,6 +65,14 @@ client_data = {
     "t": "mongo",
     "args": ["mongodb://admin:123456@192.168.99.27:27017"]
 }
+client_data = {
+    't': 'redis',
+    # 'args': ["redis://127.0.0.1:6379/0"],
+    "host":'127.0.0.1', 
+    'port':6379,
+    'db':0, 
+    # 'decode_responses':True
+}
 lock_data = {
     "t": "rllock",
     "reentrant":True, 
@@ -69,7 +83,7 @@ scheduler = create_scheduler(client_data, lock_data, serialize="pickle", groups=
 
 @register_job(scheduler, "interval", args=(12, 123), group="test", subgroup="ssss", seconds=3)
 def test1(times, aa=None, bb=None, *args):
-    print("test---------------------", util.time_now())
+    print("test111---------------------", util.time_now())
 
 job = task.Job(test00, "interval", (12, 123), group="test", subgroup="ssss", seconds=3)
 scheduler.add_job(job)
