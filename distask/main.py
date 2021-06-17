@@ -85,10 +85,10 @@ scheduler = create_scheduler(client_data, lock_data, serialize="pickle", groups=
 def test1(times, aa=None, bb=None, *args):
     print("test111---------------------", util.time_now())
 
-job = task.Job(test00, "interval", (12, 123), group="test", subgroup="ssss", seconds=3)
+job = task.Job(test00, "interval", (12, 123), group="11", subgroup="", seconds=3)
 scheduler.add_job(job)
 
-job = task.Job(test_exception, "interval", (12, 123), group="test", subgroup="ssss", seconds=3)
+job = task.Job(test_exception, "interval", (12, 123), seconds=3)
 scheduler.add_job(job)
 
 def job_execute(event):

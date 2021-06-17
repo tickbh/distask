@@ -1,13 +1,12 @@
-from distask import util
 import logging
-from distask.task import Job
+import re
 from typing import Optional
+
+from distask import util
 from distask.datastores.base import DataStore
 from distask.serializers.base import Serializer
-from distask.util import bytes_to_str, bytes_to_int
-
-import six
-import re
+from distask.task import Job
+from distask.util import bytes_to_int, bytes_to_str
 
 try:
     from redis import Redis
@@ -111,7 +110,7 @@ class RedisDataStore(DataStore):
 
     def add_job(self, job):
         job_id = self._build_id_key_by_job(job)
-        old = self._client.get(job_id)
+        old = self._client.hgetall(job_id)
         if not old:
             document = {
                 'job_id': job.job_id,
@@ -132,13 +131,14 @@ class RedisDataStore(DataStore):
                 'tigger': self._serializer.serialize(job.tigger),
                 'call': self._serializer.serialize((job.func, job.args)),
             }
-            if job.next_time < old['next_time']:
+            if job.next_time < bytes_to_int(old[b'next_time']):
                 update['next_time'] = job.next_time
             
             with self._client.pipeline() as pipe:
                 pipe.multi()
                 pipe.hmset(job_id, update)
-                pipe.zadd(self._run_times_key, {job_id: update['next_time']}) 
+                if 'next_time' in update:
+                    pipe.zadd(self._run_times_key, {job_id: update['next_time']}) 
                 pipe.execute()
 
         return None
