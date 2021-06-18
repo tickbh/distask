@@ -17,8 +17,8 @@ class RLLock(BaseLock):
         else:
             self._lock = RedLock(DEFAULT_RLLOCK_NAME, **kwargs)
 
-    def lock(self, timeout: float = -1):
-        if timeout == -1:
+    def lock(self, timeout: float = None, blocking=False):
+        if not timeout:
             return self._lock.acquire()
         now = util.micro_now()
         while util.micro_now() - now < timeout:

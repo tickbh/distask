@@ -58,6 +58,13 @@ def create_scheduler(client_data, lock_data, serialize="pickle", backgroud=False
                 lock = RLLock(*args, **lock_data)
             except:
                 raise
+        if lock_type == "zklock":
+            try:
+                from distask.locks.zk_lock import ZKLock
+                args = lock_data.pop("args", [])
+                lock = ZKLock(*args, **lock_data)
+            except:
+                raise
 
     assert lock, "must lock exist"
 

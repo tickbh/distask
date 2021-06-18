@@ -5,14 +5,12 @@ class LockError(Exception):
     pass
 
 class BaseLock(ABC):
-    _lock = 1
     @abstractmethod
     def __init__(self):
-        self._lock = 2
         pass
 
     @abstractmethod
-    def lock(self, timeout: float = -1):
+    def lock(self, timeout: float = None, blocking=False):
         pass
 
     @abstractmethod
@@ -20,7 +18,7 @@ class BaseLock(ABC):
         pass
 
     @contextmanager
-    def create_lock(self, timeout: float = -1):
+    def create_lock(self, timeout: float = None, blocking=False):
         succ = self.lock(timeout)
         yield succ
         if succ:

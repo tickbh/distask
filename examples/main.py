@@ -42,11 +42,19 @@ lock_data = {
     "connection_details":connection_details, 
     "ttl":10_000
 }
-scheduler = create_scheduler(client_data, lock_data, serialize="pickle", limit=1, maxwait=5)
+
+lock_data = {
+    "t": "zklock",
+    "hosts":['192.168.99.27:2181'], 
+}
+
+
+scheduler = create_scheduler(client_data, lock_data, serialize="pickle", limit=1, maxwait=5, func_timeout=None)
 
 @register_job(scheduler, "interval", (), group="11", subgroup="", seconds=3)
 def test_exception(times, *args, **kwargs):
     print("test0 ======================")
+    # time.sleep(62)
     a = 1 / 0
 
 @register_job(scheduler, 'cron', (12), hour='0,6,12,18', minute=0, timezone='Asia/Shanghai')
@@ -76,6 +84,4 @@ def job_execute(event):
     if event.code == EVENT_JOB_EXECUTED:
         print("event {} success".format(event.job_id))
 scheduler.add_listener(job_execute, EVENT_JOB_ERROR | EVENT_JOB_EXECUTED)
-
-
 scheduler.start()

@@ -32,6 +32,7 @@ setup(
     install_requires=[
         'tzlocal',
         'pytz',
+        'kazoo',
         'redlock',
         'pymongo'
     ],

@@ -1,2 +1,3 @@
 redlock
+kazoo
 pymongo

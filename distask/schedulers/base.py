@@ -19,7 +19,7 @@ STATE_PAUSED = 2
 
 class Scheduler(ABC):
     ''''''
-    def __init__(self, store=None, lock=None, limit=DEFAULT_MAX_JOB, groups=[], subgroups=[], maxwait=DEFAULT_MAX_WAIT) -> None:
+    def __init__(self, store=None, lock=None, limit=DEFAULT_MAX_JOB, groups=[], subgroups=[], maxwait=DEFAULT_MAX_WAIT, func_timeout=60) -> None:
         self._store = store
         self._limit = limit
         self._lock = lock
@@ -30,6 +30,7 @@ class Scheduler(ABC):
         self._maxwait = maxwait
         self._jobs = []
         self._event = None
+        self._func_timeout = func_timeout
 
         self.state = STATE_STOPPED
         self._listeners_lock = RLock()
@@ -54,9 +55,6 @@ class Scheduler(ABC):
                 import traceback
                 traceback.print_exc()
                 logging.warning('get job occur error')
-
-                
-                pass
             
             # update task status
             for job in jobs:
@@ -68,7 +66,13 @@ class Scheduler(ABC):
             try:
                 start = util.micro_now()
                 tiggers = job.get_next_time()
-                job.next_time, job.close_now = job.call_func(tiggers, self)
+
+                if self._func_timeout:
+                    with util.time_limit(self._func_timeout):
+                        job.next_time, job.close_now = job.call_func(tiggers, self)
+                else:
+                    job.next_time, job.close_now = job.call_func(tiggers, self)
+                    
                 self._store.record_job_exec("success", job, util.micro_now() - start, len(tiggers))
                 event = JobExecutionEvent(EVENT_JOB_EXECUTED, job.job_id, util.micro_now() - start)
                 self._dispatch_event(event)
@@ -168,7 +172,6 @@ class Scheduler(ABC):
             self._event.clear()
             try:
                 wait_seconds = self._process_jobs()
-                print("wait_seconds ===", wait_seconds)
             except KeyboardInterrupt:
                 raise
             except Exception as e:

@@ -31,8 +31,6 @@ class TestStringMethods(unittest.TestCase):
             job = Job(TestStringMethods.local_lamaba_jobs, "delay", (), group=group, subgroup=subgroup, seconds=1);
             scheduler.add_job(job)
             all_jobs = scheduler.get_all_jobs()
-            print("all_jobs", all_jobs)
-            print("now_jobs", now_jobs)
             self.assertTrue(len(all_jobs) == now_jobs)
 
         _add_job("aaa", "", 0)
