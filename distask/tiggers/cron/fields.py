@@ -1,4 +1,4 @@
-"""Fields represent CronTrigger options which map to :class:`~datetime.datetime` fields."""
+"""Fields represent CronTigger options which map to :class:`~datetime.datetime` fields."""
 
 from calendar import monthrange
 import re

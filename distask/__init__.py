@@ -5,6 +5,11 @@ from distask.locks.base import BaseLock
 from distask.datastores.base import DataStore
 from distask.schedulers.base import Scheduler
 from distask.schedulers.background import BackgroundScheduler
+from distask.tiggers.cron import CronTigger
+from distask.tiggers.delay import DelayTigger
+from distask.tiggers.interval import IntervalTigger
+
+
 
 def register_job(scheduler: Scheduler, *args, **kwargs) -> callable:
     def wrapper_register_job(func):
@@ -13,8 +18,8 @@ def register_job(scheduler: Scheduler, *args, **kwargs) -> callable:
         return func
     return wrapper_register_job
 
-def create_scheduler(client_data, lock_data, serialize="json", **kwargs):
-    serialize =  PickleSerializer() if serialize == "pickle" else JSONSerializer()
+def create_scheduler(client_data, lock_data, serialize="pickle", **kwargs):
+    serialize =  JSONSerializer() if serialize == "json" else PickleSerializer()
     client = None
     store = None
     if isinstance(client_data, DataStore):
@@ -25,18 +30,20 @@ def create_scheduler(client_data, lock_data, serialize="json", **kwargs):
             try:
                 from pymongo import MongoClient
                 from distask.datastores.mongodb import MongoDataStore
-                args = client_data.pop("args", [])
-                client = MongoClient(*args, **client_data)
-                store = MongoDataStore(client, serializer=serialize)
+                client_args = client_data.pop("client_args", {})
+                store_args = client_data.pop("store_args", {})
+                client = MongoClient(**client_args)
+                store = MongoDataStore(client, serializer=serialize, **store_args)
             except:
                 raise
         elif cliet_type == "redis":
             try:
                 from redis import Redis
                 from distask.datastores.redis import RedisDataStore
-                args = client_data.pop("args", [])
-                client = Redis(*args, **client_data)
-                store = RedisDataStore(client, serializer=serialize, **client_data)
+                client_args = client_data.pop("client_args", {})
+                store_args = client_data.pop("store_args", {})
+                client = Redis(*client_args)
+                store = RedisDataStore(client, serializer=serialize, **store_args)
             except:
                 raise
             

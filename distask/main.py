@@ -4,6 +4,7 @@ from datetime import date, datetime, timezone
 from os import PRIO_PGRP
 
 from pymongo.mongo_client import MongoClient
+from pytz import UTC
 
 base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 print("base_path ==", base_path)
@@ -23,18 +24,11 @@ from distask.serializers.pickle import PickleSerializer
 from distask.tiggers.interval import IntervalTigger
 
 
-def test00(times, aa=None, bb=None, *args):
-    print("test0 ======================")
-    time.sleep(0.1)
-    # return True
 
 def test_exception(times, aa=None, bb=None, *args):
     print("test0 ======================")
     a = 1 / 0
     # return True
-
-def testcron(times, aa=None, bb=None):
-    print("cron====================== ", util.time_now())
 
     # exit(0)
 logging.basicConfig(level=logging.DEBUG)
@@ -49,9 +43,8 @@ tigger = IntervalTigger(seconds=100)
 # job = task.Job()
 
 # serialize = PickleSerializer()
-serialize = JSONSerializer()
-client = MongoClient("mongodb://admin:123456@192.168.99.27:27017")
-mongodb = MongoDataStore(client, serializer=serialize)
+# client = MongoClient("mongodb://admin:123456@192.168.99.27:27017")
+# mongodb = MongoDataStore(client, serializer=serialize)
 # connection_details=[
 #     {'host': '192.168.99.27', 'port': 6379, 'db': 0},
 # ]
@@ -79,17 +72,22 @@ lock_data = {
     "connection_details":connection_details, 
     "ttl":10_000
 }
-scheduler = create_scheduler(client_data, lock_data, serialize="pickle", groups=['test'], limit=1, maxwait=5)
+scheduler = create_scheduler(client_data, lock_data, serialize="pickle", limit=1, maxwait=5)
 
-@register_job(scheduler, "interval", args=(12, 123), group="test", subgroup="ssss", seconds=3)
-def test1(times, aa=None, bb=None, *args):
-    print("test111---------------------", util.time_now())
+# @register_job(scheduler, "interval", args=(12, 123), group="test", subgroup="ssss", seconds=3)
+# def test1(times, aa=None, bb=None, *args):
+#     print("test111---------------------", util.time_now())
 
-job = task.Job(test00, "interval", (12, 123), group="11", subgroup="", seconds=3)
-scheduler.add_job(job)
+@register_job(scheduler, 'cron', (), hour='0,6,12,18', minute=0, timezone='Asia/Shanghai')
+def testcron(times, aa=None, bb=None):
+    print("cron====================== ", util.time_now())
 
-job = task.Job(test_exception, "interval", (12, 123), seconds=3)
-scheduler.add_job(job)
+
+@register_job(scheduler, "interval", (12, 123), group="11", subgroup="", seconds=3)
+def test00(times, aa=None, bb=None, *args):
+    print("test0 ======================")
+    time.sleep(0.1)
+    # return True
 
 def job_execute(event):
 

@@ -8,7 +8,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name="distask",
-    version="0.1.3",
+    version="0.1.7",
     keywords="distribute scheduling cron",
     description="a distribute task scheduler ",
     long_description=long_description,
@@ -30,6 +30,8 @@ setup(
     python_requires='>=3.6',
     include_package_data=True,
     install_requires=[
+        'tzlocal',
+        'pytz',
         'redlock',
         'pymongo'
     ],

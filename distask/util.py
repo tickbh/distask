@@ -5,12 +5,13 @@ import time
 from calendar import timegm
 from pytz import FixedOffset, timezone, utc
 
+import string
 from inspect import isclass, ismethod
 from functools import partial
 import six
 
 RETRY_DELAY = 10
-
+        
 def time_now():
     return int(time.time())
 
@@ -25,29 +26,6 @@ try:
     from threading import TIMEOUT_MAX
 except ImportError:
     TIMEOUT_MAX = 4294967 
-
-def datetime_to_utc_timestamp(timeval):
-    """
-    Converts a datetime instance to a timestamp.
-
-    :type timeval: datetime
-    :rtype: float
-
-    """
-    if timeval is not None:
-        return timegm(timeval.utctimetuple()) + timeval.microsecond / 1000000
-
-
-def datetime_to_timestamp(timeval):
-    """
-    Converts a datetime instance to a timestamp.
-
-    :type timeval: datetime
-    :rtype: float
-
-    """
-    if timeval is not None:
-        return time.mktime(timeval.timetuple())
 
 def safeint(text):
     if text is not None:
@@ -250,6 +228,17 @@ def ref_to_obj(ref):
     except Exception:
         raise LookupError('Error resolving reference %s: error looking up object' % ref)
 
+def safe_int(num):
+    try:
+        return int(num)
+    except ValueError:
+        result = "0"
+        for c in num:
+            if c not in string.digits:
+                break
+            result += c
+        return int(result)
+
 def bytes_to_str(b):
     if type(b) == str:
         return b
@@ -258,10 +247,14 @@ def bytes_to_str(b):
 def bytes_to_int(b):
     if type(b) == int:
         return b
-    # s = bytes_to_str(b)
-    return int(b)
+    s = bytes_to_str(b)
+    return safe_int(s)
 
 def str_to_bytes(s):
     if type(s) == bytes:
         return s
     return s.encode(encoding="utf-8")
+
+def asint(text):
+    if text is not None:
+        return int(text)

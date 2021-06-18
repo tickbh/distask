@@ -75,34 +75,16 @@ class RedisDataStore(DataStore):
                 pipe.execute()
         return jobs
 
-    def _reconstitute_jobs(self, job_states):
-        jobs = []
-        failed_job_ids = []
-        for job_id, job_state in job_states:
-            try:
-                jobs.append(self._reconstitute_job(job_state))
-            except BaseException:
-                logging.exception('Unable to restore job "%s" -- removing it', job_id)
-                failed_job_ids.append(job_id)
-
-        # Remove all the jobs we failed to restore
-        if failed_job_ids:
-            with self._client.pipeline() as pipe:
-                pipe.delete(*failed_job_ids)
-                pipe.zrem(self._run_times_key, *failed_job_ids)
-                pipe.execute()
-
-        return jobs
-
     def _reconstitute_job(self, row):
         job = Job.__new__(Job)
+        func_str, args = self._serializer.deserialize(row[b'call'])
         states = (
             bytes_to_str(row[b'job_id']), 
             bytes_to_int(row[b'next_time']), 
             bytes_to_str(row[b'group']), 
             bytes_to_str(row[b'subgroup']), 
             self._serializer.deserialize(row[b'tigger']),
-            *self._serializer.deserialize(row[b'call']), 
+            util.ref_to_obj(func_str), args, 
             bytes_to_int(row[b'status_last_time']),
         )
         job.__setstate__(states)
@@ -119,7 +101,7 @@ class RedisDataStore(DataStore):
                 'status_last_time': job.status_last_time,
                 'next_time': job.next_time,
                 'tigger': self._serializer.serialize(job.tigger),
-                'call': self._serializer.serialize((job.func, job.args)),
+                'call': self._serializer.serialize((job.get_func_str(), job.args)),
             }
             with self._client.pipeline() as pipe:
                 pipe.multi()
@@ -129,7 +111,7 @@ class RedisDataStore(DataStore):
         else:
             update = {
                 'tigger': self._serializer.serialize(job.tigger),
-                'call': self._serializer.serialize((job.func, job.args)),
+                'call': self._serializer.serialize((job.get_func_str(), job.args)),
             }
             if job.next_time < bytes_to_int(old[b'next_time']):
                 update['next_time'] = job.next_time
@@ -167,3 +149,12 @@ class RedisDataStore(DataStore):
 
     def record_job_exec(self, status, job, duration=0, runtimes=1, excetion=None):
         return None
+
+    def clear_all_jobs_info(self):
+        all_keys = self._client.keys(self._jobs_key + "*")
+        with self._client.pipeline() as pipe:
+            pipe.multi()
+            if len(all_keys) > 0:
+                pipe.delete(*all_keys)
+            pipe.delete(self._run_times_key) 
+            pipe.execute()

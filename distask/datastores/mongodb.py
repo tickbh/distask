@@ -5,14 +5,13 @@ from traceback import print_exc
 from typing import List, Optional
 
 import pymongo
+from distask import util
+from distask.datastores.base import DataStore
+from distask.serializers.base import Serializer
+from distask.task import DeserializationError, Job
 from pymongo import ASCENDING, DeleteOne, MongoClient, UpdateOne
 from pymongo.collection import Collection
 from pymongo.errors import DuplicateKeyError
-
-from distask import util
-from distask.serializers.base import Serializer
-from distask.task import DeserializationError, Job
-from distask.datastores.base import DataStore
 
 
 class MongoDataStore(DataStore):
@@ -45,33 +44,15 @@ class MongoDataStore(DataStore):
 
     def _reconstitute_job(self, row):
         job = Job.__new__(Job)
+        func_str, args = self._serializer.deserialize(row['call'])
         states = (row['job_id'], row['next_time'], row['group'], row['subgroup'], 
-            self._serializer.deserialize(row['tigger']), *self._serializer.deserialize(row['call']), row['status_last_time'])
+            self._serializer.deserialize(row['tigger']), util.ref_to_obj(func_str), args, row['status_last_time'])
         job.__setstate__(states)
         return job
 
 
     def get_all_jobs(self, scheduler) -> List:
         return self.get_jobs(scheduler, util.micro_max())
-        jobs: List[Job] = []
-        filters = {}
-        if len(scheduler._groups): filters["group"] = {"$in": scheduler._groups}
-        if len(scheduler._subgroups): filters["subgroup"] = {"$in": scheduler._subgroups}
-        
-        rows = self._jobs.find(filters).sort([('next_time', pymongo.ASCENDING)])
-        failed_job_ids = []
-        for row in rows:
-            try:
-                job = self._reconstitute_job(row)
-                jobs.append(job)
-            except Exception:
-                failed_job_ids.append(row['_id'])
-                continue
-        # Remove all the jobs we failed to restore
-        if failed_job_ids:
-            logging.warning('Failed to deserialize job %s, so remove it now', failed_job_ids)
-            self._jobs.remove({'_id': {'$in': failed_job_ids}})
-        return jobs
 
     def get_jobs(self, scheduler, now, limit=None) -> List:
         jobs: List[Job] = []
@@ -111,13 +92,13 @@ class MongoDataStore(DataStore):
                 'status_last_time': job.status_last_time,
                 'next_time': job.next_time,
                 'tigger': self._serializer.serialize(job.tigger),
-                'call': self._serializer.serialize((job.func, job.args)),
+                'call': self._serializer.serialize((job.get_func_str(), job.args)),
             }
             self._jobs.insert_one(document)
         else:
             update = {
                 'tigger': self._serializer.serialize(job.tigger),
-                'call': self._serializer.serialize((job.func, job.args)),
+                'call': self._serializer.serialize((job.get_func_str(), job.args)),
             }
             if job.next_time < old['next_time']:
                 update['next_time'] = job.next_time
@@ -159,3 +140,7 @@ class MongoDataStore(DataStore):
             'excetion': excetion
         })
         return None
+
+    def clear_all_jobs_info(self):
+        self._jobs.drop()
+        self._schedules.drop()

@@ -1,6 +1,4 @@
-from __future__ import absolute_import
-
-from threading import Thread, Event
+from threading import Event, Thread
 
 from distask.schedulers.base import Scheduler
 

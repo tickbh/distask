@@ -6,12 +6,11 @@ from distask.tiggers.cron.fields import (DEFAULT_VALUES, BaseField,
                                          DayOfMonthField, DayOfWeekField,
                                          MonthField, WeekField)
 from distask.util import (astimezone, convert_to_datetime, datetime_ceil,
-                          datetime_repr, datetime_to_timestamp,
-                          datetime_to_utc_timestamp)
+                          datetime_repr)
 from tzlocal import get_localzone
 
 
-class CronTrigger(Tigger):
+class CronTigger(Tigger):
     """
     Triggers when current time matches all specified time constraints,
     similarly to how the UNIX cron scheduler works.
@@ -89,14 +88,14 @@ class CronTrigger(Tigger):
     @classmethod
     def from_crontab(cls, expr, timezone=None):
         """
-        Create a :class:`~CronTrigger` from a standard crontab expression.
+        Create a :class:`~CronTigger` from a standard crontab expression.
 
         See https://en.wikipedia.org/wiki/Cron for more information on the format accepted here.
 
         :param expr: minute, hour, day of month, month, day of week
         :param datetime.tzinfo|str timezone: time zone to use for the date/time calculations (
             defaults to scheduler timezone)
-        :return: a :class:`~CronTrigger` instance
+        :return: a :class:`~CronTigger` instance
 
         """
         values = expr.split()
@@ -199,21 +198,19 @@ class CronTrigger(Tigger):
 
         if fieldnum >= 0:
             now_date = min(next_date, self.end_date) if self.end_date else next_date
-            return [datetime_to_timestamp(now_date)*1000]
+            return [now_date.astimezone(self.timezone).timestamp()*1000]
         return [0]
 
     def __getstate__(self):
         return {
             'version': 2,
-            'timezone': self.timezone,
+            'timezone': self.timezone.zone,
             'start_date': self.start_date,
             'end_date': self.end_date,
             'fields': self.fields,
-            'jitter': self.jitter,
         }
 
     def __setstate__(self, state):
-        # This is for compatibility with APScheduler 3.0.x
         if isinstance(state, tuple):
             state = state[1]
 
@@ -222,7 +219,7 @@ class CronTrigger(Tigger):
                 'Got serialized data for version %s of %s, but only versions up to 2 can be '
                 'handled' % (state['version'], self.__class__.__name__))
 
-        self.timezone = state['timezone']
+        self.timezone = astimezone(state['timezone'])
         self.start_date = state['start_date']
         self.end_date = state['end_date']
         self.fields = state['fields']

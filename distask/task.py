@@ -2,16 +2,17 @@ from abc import ABCMeta, abstractmethod
 from base64 import b64decode, b64encode
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from distask.schedulers.base import Scheduler
 from re import sub
 from typing import (Any, Callable, Dict, FrozenSet, Iterable, Iterator, List,
                     Optional, Set, Type)
 from uuid import UUID, uuid4
 
 from distask.tiggers.base import Tigger
-from distask.tiggers.cron import CronTrigger
+from distask.tiggers.cron import CronTigger
 from distask.tiggers.delay import DelayTigger
 from distask.tiggers.interval import IntervalTigger
-
+from distask import util
 
 class DeserializationError(AttributeError):
     """Raised when a serializer fails to deserialize the given object."""
@@ -36,7 +37,7 @@ class Job:
         elif tigger == "delay":
             self.tigger = DelayTigger(**kwargs)
         elif tigger == "cron":
-            self.tigger = CronTrigger(**kwargs)
+            self.tigger = CronTigger(**kwargs)
         elif issubclass(tigger, Tigger):
             self.tigger = tigger
         else:
@@ -61,13 +62,19 @@ class Job:
     def get_next_time(self):
         return self.tigger.get_next_time(self.next_time)
 
-    def call_func(self, tiggers=None):
+    def call_func(self, tiggers=None, scheduler=None):
         if not tiggers: tiggers = self.get_next_time()
-        is_close = self.func(tiggers, *self.args, self.group, self.subgroup)
+        is_close = self.func(tiggers, *self.args, self.group, self.subgroup, scheduler=scheduler)
         return tiggers[-1], is_close
 
     def is_only_once(self):
         return self.tigger.is_only_once()
+
+    def get_func_str(self):
+        return util.obj_to_ref(self.func)
+
+    def set_func_str(self, func_str):
+        self.func = util.ref_to_obj(func_str)
 
     def __getstate__(self):  
         """Return state values to be pickled."""

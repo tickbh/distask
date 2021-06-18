@@ -1,9 +1,10 @@
-"""This module contains the expressions applicable for CronTrigger's fields."""
+"""This module contains the expressions applicable for CronTigger's fields."""
 
 from calendar import monthrange
+import distask
 import re
 
-from apscheduler.util import asint
+from distask.util import asint
 
 __all__ = ('AllExpression', 'RangeExpression', 'WeekdayRangeExpression',
            'WeekdayPositionExpression', 'LastDayOfMonthExpression')
@@ -22,7 +23,7 @@ class AllExpression(object):
             raise ValueError('Increment must be higher than 0')
 
     def validate_range(self, field_name):
-        from apscheduler.triggers.cron.fields import MIN_VALUES, MAX_VALUES
+        from distask.tiggers.cron.fields import MIN_VALUES, MAX_VALUES
 
         value_range = MAX_VALUES[field_name] - MIN_VALUES[field_name]
         if self.step and self.step > value_range:
@@ -72,7 +73,7 @@ class RangeExpression(AllExpression):
         self.last = last
 
     def validate_range(self, field_name):
-        from apscheduler.triggers.cron.fields import MIN_VALUES, MAX_VALUES
+        from distask.tiggers.cron.fields import MIN_VALUES, MAX_VALUES
 
         super(RangeExpression, self).validate_range(field_name)
         if self.first < MIN_VALUES[field_name]:

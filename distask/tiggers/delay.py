@@ -14,7 +14,7 @@ class DelayTigger(Tigger):
         if minutes: self.microseconds = minutes * 60_000 + self.microseconds
         if hours: self.microseconds = hours * 3600_000 + self.microseconds
         if date:
-            self.microseconds = util.datetime_to_timestamp(date) * 1000 - util.micro_now()
+            self.microseconds = date.timestamp() * 1000 - util.micro_now()
         if not self.microseconds:
             raise AttributeError("not vaild interval")
 

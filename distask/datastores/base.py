@@ -27,3 +27,7 @@ class DataStore(ABC):
     @abstractmethod
     def record_job_exec(self, status, job, duration=0, runtimes=1, excetion=None):
         return None
+
+    @abstractmethod
+    def clear_all_jobs_info(self):
+        return None

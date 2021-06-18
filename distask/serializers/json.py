@@ -56,6 +56,7 @@ class JSONSerializer(Serializer):
     def __post_init__(self):
         self.dump_options['default'] = self._default_hook
         self.load_options['object_hook'] = self._object_hook
+        raise Exception("unsport json serializer now")
 
     @classmethod
     def _default_hook(cls, obj):

@@ -4,12 +4,12 @@ from abc import ABC, abstractmethod
 from datetime import date, datetime, timezone
 from threading import Event, RLock
 
+from distask import util
 from distask.events import (EVENT_ALL, EVENT_JOB_ADDED, EVENT_JOB_REMOVED,
                             EVENT_SCHEDULER_PAUSED, EVENT_SCHEDULER_RESUMED,
                             EVENT_SCHEDULER_SHUTDOWN, EVENT_SCHEDULER_START,
                             JobEvent, SchedulerEvent)
 from distask.task import Job
-from distask import util
 
 DEFAULT_MAX_JOB = 10
 DEFAULT_MAX_WAIT = 60
@@ -67,7 +67,7 @@ class Scheduler(ABC):
             try:
                 start = util.micro_now()
                 tiggers = job.get_next_time()
-                job.next_time, job.close_now = job.call_func(tiggers)
+                job.next_time, job.close_now = job.call_func(tiggers, self)
                 self._store.record_job_exec("success", job, util.micro_now() - start, len(tiggers))
             except Exception as e:
                 job.next_time = tiggers[-1]
@@ -119,6 +119,9 @@ class Scheduler(ABC):
         self._dispatch_event(event)
 
         logging.info('Removed job %s', job['job_id'])
+
+    def clear_all_jobs(self):
+        self._store.clear_all_jobs_info()
 
     def start(self, paused=False, ready=True):
         if self._event is None or self._event.is_set():
