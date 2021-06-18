@@ -23,7 +23,7 @@ class IntervalTigger(Tigger):
         if not pre or pre >= now:
             tiggers.append(now + self.microseconds)
             return tiggers
-        for t in range(pre, now, self.microseconds):
+        for t in range(int(pre), now, self.microseconds):
             tiggers.append(t + self.microseconds)
         return tiggers
 

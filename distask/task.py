@@ -2,17 +2,17 @@ from abc import ABCMeta, abstractmethod
 from base64 import b64decode, b64encode
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from distask.schedulers.base import Scheduler
 from re import sub
 from typing import (Any, Callable, Dict, FrozenSet, Iterable, Iterator, List,
                     Optional, Set, Type)
 from uuid import UUID, uuid4
 
+from distask import util
 from distask.tiggers.base import Tigger
 from distask.tiggers.cron import CronTigger
 from distask.tiggers.delay import DelayTigger
 from distask.tiggers.interval import IntervalTigger
-from distask import util
+
 
 class DeserializationError(AttributeError):
     """Raised when a serializer fails to deserialize the given object."""

@@ -1,6 +1,5 @@
 from distask.serializers.json import JSONSerializer
 from distask.serializers.pickle import PickleSerializer
-from distask.task import Job
 from distask.locks.base import BaseLock
 from distask.datastores.base import DataStore
 from distask.schedulers.base import Scheduler
@@ -8,8 +7,7 @@ from distask.schedulers.background import BackgroundScheduler
 from distask.tiggers.cron import CronTigger
 from distask.tiggers.delay import DelayTigger
 from distask.tiggers.interval import IntervalTigger
-
-
+from distask.task import Job
 
 def register_job(scheduler: Scheduler, *args, **kwargs) -> callable:
     def wrapper_register_job(func):
@@ -18,7 +16,7 @@ def register_job(scheduler: Scheduler, *args, **kwargs) -> callable:
         return func
     return wrapper_register_job
 
-def create_scheduler(client_data, lock_data, serialize="pickle", **kwargs):
+def create_scheduler(client_data, lock_data, serialize="pickle", backgroud=False, **kwargs):
     serialize =  JSONSerializer() if serialize == "json" else PickleSerializer()
     client = None
     store = None
@@ -63,5 +61,8 @@ def create_scheduler(client_data, lock_data, serialize="pickle", **kwargs):
 
     assert lock, "must lock exist"
 
-    scheduler = Scheduler(store=store, lock=lock, **kwargs)
+    if backgroud:
+        scheduler = BackgroundScheduler(store=store, lock=lock, **kwargs)
+    else:
+        scheduler = Scheduler(store=store, lock=lock, **kwargs)
     return scheduler

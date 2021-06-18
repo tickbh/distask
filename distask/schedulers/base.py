@@ -1,4 +1,3 @@
-
 import logging
 from abc import ABC, abstractmethod
 from datetime import date, datetime, timezone
@@ -134,6 +133,7 @@ class Scheduler(ABC):
 
     def shutdown(self, wait=True):
         self._event.set()
+        self.state = STATE_STOPPED
         self._dispatch_event(SchedulerEvent(EVENT_SCHEDULER_SHUTDOWN))
 
 
@@ -161,6 +161,7 @@ class Scheduler(ABC):
             self._event.clear()
             try:
                 wait_seconds = self._process_jobs()
+                print("wait_seconds ===", wait_seconds)
             except KeyboardInterrupt:
                 raise
             except Exception as e:

@@ -1,7 +1,7 @@
 
 from distask import create_scheduler
 
-def create_base_scheduler(db="mongo", limit=10, maxwait=10):
+def create_base_scheduler(db="mongo", limit=10, maxwait=1):
     client_data = {
         "t": "mongo",
         "client_args": {
