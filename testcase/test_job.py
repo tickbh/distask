@@ -24,6 +24,26 @@ class TestStringMethods(unittest.TestCase):
         scheduler.start()
         self.assertTrue(True)
 
+    def test_group_job(self):
+        scheduler = create_base_scheduler(groups=["aaa", "bbb"], subgroups=["ccc", "ddd"])
+
+        def _add_job(group, subgroup, now_jobs):
+            job = Job(TestStringMethods.local_lamaba_jobs, "delay", (), group=group, subgroup=subgroup, seconds=1);
+            scheduler.add_job(job)
+            all_jobs = scheduler.get_all_jobs()
+            print("all_jobs", all_jobs)
+            print("now_jobs", now_jobs)
+            self.assertTrue(len(all_jobs) == now_jobs)
+
+        _add_job("aaa", "", 0)
+        _add_job("aaa", "ccc", 1)
+        _add_job("aaa", "ccc", 2)
+        _add_job("ccc", "ccc", 2)
+        _add_job("", "ccc", 2)
+        _add_job("aaa", "ddd", 3)
+        _add_job("bbb", "ddd", 4)
+        _add_job("bbb", "eee", 4)
+
 
 if __name__ == '__main__':
     unittest.main()

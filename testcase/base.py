@@ -1,7 +1,13 @@
 
 from distask import create_scheduler
 
-def create_base_scheduler(db="mongo", limit=10, maxwait=1):
+def create_base_scheduler(db="none", **kwargs):
+    if db == "none":
+        import random
+        if random.randint(0, 1) == 1:
+            db = "mongo"
+        else:
+            db = "redis"
     client_data = {
         "t": "mongo",
         "client_args": {
@@ -30,6 +36,7 @@ def create_base_scheduler(db="mongo", limit=10, maxwait=1):
         "connection_details":connection_details, 
         "ttl":10_000
     }
-    scheduler = create_scheduler(client_data, lock_data, serialize="pickle", limit=limit, maxwait=maxwait)
+    kwargs.setdefault("limit", 1)
+    scheduler = create_scheduler(client_data, lock_data, serialize="pickle", **kwargs)
     scheduler.clear_all_jobs()
     return scheduler

@@ -49,6 +49,7 @@ lock_data = {
 }
 scheduler = create_scheduler(client_data, lock_data, serialize="pickle", limit=1, maxwait=5)
 
+@register_job(scheduler, "interval", (), group="11", subgroup="", seconds=3)
 def test_exception(times, *args, **kwargs):
     print("test0 ======================")
     a = 1 / 0
@@ -74,12 +75,3 @@ scheduler.start()
 while True:
     print("sleep!!!!!!!")
     time.sleep(5)
-scheduler.shutdown()
-# jobs = scheduler._get_jobs()
-# print(jobs)
-# for job in jobs:
-#     if job.func:
-#         tiggers = job.tigger.get_next_time(job.next_time * 1000)
-#         print("tiggers len ==", len(tiggers))
-#         print(job.tigger)
-#         job.func(tiggers, *job.args)

@@ -48,7 +48,7 @@ class Job:
         self.args = args
         if job_id == None:
             if only_once:
-                self.job_id = f"{func.__module__}.{func.__name__}__" + uuid4()
+                self.job_id = f"{func.__module__}.{func.__name__}__" + "{}".format(uuid4())
             else:
                 self.job_id = f"{func.__module__}.{func.__name__}"
         else:
