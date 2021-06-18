@@ -1,23 +1,18 @@
-import logging
-import time, os, sys
-from datetime import date, datetime, timezone
-from os import PRIO_PGRP
-
-from pymongo.mongo_client import MongoClient
-from pytz import UTC
-
+import os, sys
 base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-print("base_path ==", base_path)
 sys.path.append(base_path)
 sys.path.append(base_path + '/..')
 sys.path.append(os.pardir)  # 为了导入父目录的文件而进行的设定
 
-from distask import create_scheduler, task, register_job
-from distask import util
-from distask.events import EVENT_SCHEDULER_START
 
-
+import logging
 logging.basicConfig(level=logging.DEBUG)
+
+import time
+from distask import create_scheduler, register_job
+from distask import util
+from distask.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED, EVENT_SCHEDULER_START
+
 enable_redis = False
 client_data = {
     "t": "mongo",
@@ -64,14 +59,23 @@ def testcron(times, a, *arg, **kwargs):
 def test00(times, *args, **kwargs):
     print("test0 ======================")
     time.sleep(0.1)
-    # return True
 
-def job_execute(event):
-
+def scheduler_start(event):
     if event.code == EVENT_SCHEDULER_START:
         print("start success")
-scheduler.add_listener(job_execute, EVENT_SCHEDULER_START)
+scheduler.add_listener(scheduler_start, EVENT_SCHEDULER_START)
+
+def job_execute(event):
+    if event.code == EVENT_JOB_ERROR:
+        print("event {} error".format(event.job_id))
+        print("exec_type: {}".format(event.exec_type))
+        print("exec_value: {}".format(event.exec_value))
+        print("traceback: {}".format(event.traceback))
+        import traceback
+        traceback.print_tb(event.traceback)
+    if event.code == EVENT_JOB_EXECUTED:
+        print("event {} success".format(event.job_id))
+scheduler.add_listener(job_execute, EVENT_JOB_ERROR | EVENT_JOB_EXECUTED)
+
+
 scheduler.start()
-while True:
-    print("sleep!!!!!!!")
-    time.sleep(5)

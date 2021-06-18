@@ -70,10 +70,10 @@ class JobExecutionEvent(JobEvent):
     :ivar traceback: a formatted traceback for the exception
     """
 
-    def __init__(self, code, job_id, jobstore, scheduled_run_time, retval=None, exception=None,
+    def __init__(self, code, job_id, scheduled_run_time, exec_type=None, exec_value=None,
                  traceback=None):
-        super(JobExecutionEvent, self).__init__(code, job_id, jobstore)
+        super(JobExecutionEvent, self).__init__(code, job_id)
         self.scheduled_run_time = scheduled_run_time
-        self.retval = retval
-        self.exception = exception
+        self.exec_type = exec_type
+        self.exec_value = exec_value
         self.traceback = traceback

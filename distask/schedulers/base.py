@@ -1,13 +1,13 @@
-import logging
+import logging, sys
 from abc import ABC, abstractmethod
 from datetime import date, datetime, timezone
 from threading import Event, RLock
 
 from distask import util
-from distask.events import (EVENT_ALL, EVENT_JOB_ADDED, EVENT_JOB_REMOVED,
+from distask.events import (EVENT_ALL, EVENT_JOB_ADDED, EVENT_JOB_ERROR, EVENT_JOB_EXECUTED, EVENT_JOB_REMOVED,
                             EVENT_SCHEDULER_PAUSED, EVENT_SCHEDULER_RESUMED,
                             EVENT_SCHEDULER_SHUTDOWN, EVENT_SCHEDULER_START,
-                            JobEvent, SchedulerEvent)
+                            JobEvent, JobExecutionEvent, SchedulerEvent)
 from distask.task import Job
 
 DEFAULT_MAX_JOB = 10
@@ -54,6 +54,8 @@ class Scheduler(ABC):
                 import traceback
                 traceback.print_exc()
                 logging.warning('get job occur error')
+
+                
                 pass
             
             # update task status
@@ -68,10 +70,15 @@ class Scheduler(ABC):
                 tiggers = job.get_next_time()
                 job.next_time, job.close_now = job.call_func(tiggers, self)
                 self._store.record_job_exec("success", job, util.micro_now() - start, len(tiggers))
+                event = JobExecutionEvent(EVENT_JOB_EXECUTED, job.job_id, util.micro_now() - start)
+                self._dispatch_event(event)
             except Exception as e:
+                exec_type, exec_value, traceback = sys.exc_info()
                 job.next_time = tiggers[-1]
                 self._store.record_job_exec("failed", job, util.micro_now() - start, 0, str(e))
                 logging.warning("run job %s catch exception(%s)" % (job.job_id, e))
+                event = JobExecutionEvent(EVENT_JOB_ERROR, job.job_id, 0, exec_type, exec_value, traceback=traceback)
+                self._dispatch_event(event)
 
         with self._lock.create_lock(60_000) as succ:
             for job in jobs:
