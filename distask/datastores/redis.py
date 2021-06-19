@@ -41,6 +41,7 @@ class RedisDataStore(DataStore):
             return []
         filter_jobs = []
         need_del_jobs = []
+        has_execption = False
         for job_id in job_ids:
             job_id = bytes_to_str(job_id)
             match = self._key_pattern.match(job_id)
@@ -66,6 +67,7 @@ class RedisDataStore(DataStore):
             except BaseException:
                 logging.exception('Unable to restore job "%s" -- removing it', job_id)
                 need_del_jobs.append(job_id)
+                has_execption = True
 
         # Remove all the jobs we failed to restore
         if need_del_jobs:
@@ -73,7 +75,7 @@ class RedisDataStore(DataStore):
                 pipe.delete(*need_del_jobs)
                 pipe.zrem(self._run_times_key, *need_del_jobs)
                 pipe.execute()
-        return jobs
+        return jobs, has_execption
 
     def _reconstitute_job(self, row):
         job = Job.__new__(Job)

@@ -56,6 +56,7 @@ class MongoDataStore(DataStore):
 
     def get_jobs(self, scheduler, now, limit=None) -> List:
         jobs: List[Job] = []
+        has_execption = False
         filters = {"next_time": {"$lt": now}, "status_last_time": {"$lt": now}}
         if len(scheduler._groups): filters["group"] = {"$in": scheduler._groups}
         if len(scheduler._subgroups): filters["subgroup"] = {"$in": scheduler._subgroups}
@@ -70,12 +71,13 @@ class MongoDataStore(DataStore):
                 jobs.append(job)
             except Exception:
                 failed_job_ids.append(row['_id'])
+                has_execption = True
                 continue
         # Remove all the jobs we failed to restore
         if failed_job_ids:
             logging.warning('Failed to deserialize job %s, so remove it now', failed_job_ids)
             self._jobs.remove({'_id': {'$in': failed_job_ids}})
-        return jobs
+        return jobs, has_execption
 
     def add_job(self, job: Job) -> None:
         filter = {

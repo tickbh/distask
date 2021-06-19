@@ -45,16 +45,17 @@ class Scheduler(ABC):
         now = util.micro_now()
         next_wakeup_time = now + 6_000
         jobs = []
-
+        has_execption = False
         with self._lock.create_lock() as succ:
             if not succ:
                 return 0.1
             try:
-                jobs = self._get_jobs(self._limit)
+                jobs, has_execption = self.get_jobs(self._limit)
             except Exception as e:
                 import traceback
                 traceback.print_exc()
                 logging.warning('get job occur error')
+                has_execption = True
             
             # update task status
             for job in jobs:
@@ -79,28 +80,32 @@ class Scheduler(ABC):
                 logging.warning("run job %s catch exception(%s)" % (job.job_id, e))
                 event = JobExecutionEvent(EVENT_JOB_ERROR, job.job_id, 0, exec_type, exec_value, traceback=traceback)
                 self._dispatch_event(event)
-
-        with self._lock.create_lock(60_000) as succ:
-            for job in jobs:
-                if job.is_only_once() or job.next_time == 0 or job.close_now:
-                    self._store.remove_job(job)
-                else:
-                    changes = {
-                        "status_last_time": 0,
-                        "next_time": job.next_time
-                    }
-                    next_wakeup_time = min(job.next_time, next_wakeup_time)
-                    self._store.modify_job(job, changes)
+        
+        if len(jobs):
+            with self._lock.create_lock(60_000) as succ:
+                for job in jobs:
+                    if job.is_only_once() or job.next_time == 0 or job.close_now:
+                        self._store.remove_job(job)
+                    else:
+                        changes = {
+                            "status_last_time": 0,
+                            "next_time": job.next_time
+                        }
+                        next_wakeup_time = min(job.next_time, next_wakeup_time)
+                        self._store.modify_job(job, changes)
 
         wait_microseconds = next_wakeup_time - now
         if (len(jobs) == self._limit and wait_microseconds > 60_000) or wait_microseconds < 0:
             wait_microseconds = 0
-        return min(self._maxwait, wait_microseconds / 1000)
+        max_wait = self._maxwait
+        if has_execption:
+            max_wait = max_wait / 10
+        return min(max_wait, wait_microseconds / 1000)
 
-    def _get_jobs(self, limit=None):
+    def get_jobs(self, limit=None):
         now = util.micro_now()
-        jobs = self._store.get_jobs(self, now, limit)
-        return jobs
+        jobs, has_execption = self._store.get_jobs(self, now, limit)
+        return jobs, has_execption
 
     def get_all_jobs(self, limit=None):
         jobs = self._store.get_all_jobs(self)

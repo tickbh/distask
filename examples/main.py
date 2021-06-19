@@ -64,7 +64,7 @@ def testcron(times, a, *arg, **kwargs):
 
 
 @register_job(scheduler, "interval", (), group="11", subgroup="", seconds=3)
-def test00(times, *args, **kwargs):
+def test000(times, *args, **kwargs):
     print("test0 ======================")
     time.sleep(0.1)
 
