@@ -260,19 +260,47 @@ def asint(text):
         return int(text)
 
 
-import signal
-from contextlib import contextmanager
+# import signal
+# from contextlib import contextmanager
 
-class TimeoutException(Exception): pass
+# class TimeoutException(Exception): pass
 
-@contextmanager
-def time_limit(seconds):
-    def signal_handler(signum, frame):
-        raise TimeoutException("Timed out!")
-    signal.signal(signal.SIGALRM, signal_handler)
-    signal.alarm(seconds)
-    try:
-        yield
-    finally:
-        signal.alarm(0)
+# @contextmanager
+# def time_limit(seconds):
+#     def signal_handler(signum, frame):
+#         raise TimeoutException("Timed out!")
+#     signal.signal(signal.SIGALRM, signal_handler)
+#     signal.alarm(seconds)
+#     try:
+#         yield
+#     finally:
+#         signal.alarm(0)
 
+
+# import threading
+
+# class TimeoutError(Exception):
+#     pass
+
+# class InterruptableThread(threading.Thread):
+#     def __init__(self, func, *args, **kwargs):
+#         threading.Thread.__init__(self)
+#         self._func = func
+#         self._args = args
+#         self._kwargs = kwargs
+#         self._result = None
+
+#     def run(self):
+#         self._result = self._func(*self._args, **self._kwargs)
+
+#     @property
+#     def result(self):
+#         return self._result
+
+# def timeout_limit(sec, f, *args, **kwargs):
+#     it = InterruptableThread(f, *args, **kwargs)
+#     it.start()
+#     it.join(sec)
+#     if not it.is_alive():
+#         return it.result
+#     raise TimeoutError('execution expired')

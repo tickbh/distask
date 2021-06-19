@@ -43,13 +43,13 @@ lock_data = {
     "ttl":10_000
 }
 
-lock_data = {
-    "t": "zklock",
-    "hosts":['192.168.99.27:2181'], 
-}
+# lock_data = {
+#     "t": "zklock",
+#     "hosts":['192.168.99.27:2181'], 
+# }
 
 
-scheduler = create_scheduler(client_data, lock_data, serialize="pickle", limit=1, maxwait=5, func_timeout=None)
+scheduler = create_scheduler(client_data, lock_data, serialize="pickle", limit=1, maxwait=5)
 
 @register_job(scheduler, "interval", (), group="11", subgroup="", seconds=3)
 def test_exception(times, *args, **kwargs):
