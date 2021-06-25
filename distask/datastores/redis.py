@@ -128,7 +128,8 @@ class RedisDataStore(DataStore):
         return None
 
     def get_all_jobs(self, scheduler):
-        return self.get_jobs(scheduler, util.micro_max())
+        jobs, has_execption = self.get_jobs(scheduler, util.micro_max())
+        return jobs
 
     def modify_job(self, job, update):
         job_id = self._build_id_key_by_job(job)

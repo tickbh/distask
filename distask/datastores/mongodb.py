@@ -52,7 +52,8 @@ class MongoDataStore(DataStore):
 
 
     def get_all_jobs(self, scheduler) -> List:
-        return self.get_jobs(scheduler, util.micro_max())
+        jobs, has_execption = self.get_jobs(scheduler, util.micro_max())
+        return jobs
 
     def get_jobs(self, scheduler, now, limit=None) -> List:
         jobs: List[Job] = []
