@@ -85,3 +85,42 @@ def job_execute(event):
         print("event {} success".format(event.job_id))
 scheduler.add_listener(job_execute, EVENT_JOB_ERROR | EVENT_JOB_EXECUTED)
 scheduler.start()
+
+# def runFunctionCatchExceptions(func, *args, **kwargs):
+#     try:
+#         result = func(*args, **kwargs)
+#     except Exception as message:
+#         return ["exception", message]
+
+#     return ["RESULT", result]
+
+
+# def runFunctionWithTimeout(func, args=(), kwargs={}, timeout_duration=10, default=None):
+#     import threading
+#     class InterruptableThread(threading.Thread):
+#         def __init__(self):
+#             threading.Thread.__init__(self)
+#             self.result = default
+#         def run(self):
+#             self.result = runFunctionCatchExceptions(func, *args, **kwargs)
+#     it = InterruptableThread()
+#     it.start()
+#     it.join(timeout_duration)
+#     if it.is_alive():
+#         return default
+
+#     if it.result[0] == "exception":
+#         raise it.result[1]
+
+#     return it.result[1]
+
+# def remote_calculate(aaa):
+#     print(aaa)
+#     i = 0
+#     while True:
+#         print(i)
+#         i = i + 1
+#         time.sleep(1)
+
+# result = runFunctionWithTimeout(remote_calculate, (1,), timeout_duration=5)
+# print("result ========== ", result)

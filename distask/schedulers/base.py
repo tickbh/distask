@@ -126,10 +126,10 @@ class Scheduler(ABC):
             'subgroup': job.subgroup
         })
 
-        event = JobEvent(EVENT_JOB_REMOVED, job['job_id'])
+        event = JobEvent(EVENT_JOB_REMOVED, job.job_id)
         self._dispatch_event(event)
 
-        logging.info('Removed job %s', job['job_id'])
+        logging.info('Removed job %s', job.job_id)
 
     def clear_all_jobs(self):
         self._store.clear_all_jobs_info()
