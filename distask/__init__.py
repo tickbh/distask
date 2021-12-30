@@ -40,7 +40,7 @@ def create_scheduler(client_data, lock_data, serialize="pickle", backgroud=False
                 from distask.datastores.redis import RedisDataStore
                 client_args = client_data.pop("client_args", {})
                 store_args = client_data.pop("store_args", {})
-                client = Redis(*client_args)
+                client = Redis(**client_args)
                 store = RedisDataStore(client, serializer=serialize, **store_args)
             except:
                 raise

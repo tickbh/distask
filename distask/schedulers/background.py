@@ -19,5 +19,5 @@ class BackgroundScheduler(Scheduler):
 
     def shutdown(self, *args, **kwargs):
         super(BackgroundScheduler, self).shutdown(*args, **kwargs)
-        self._thread.join()
-        del self._thread
+        # self._thread.join()
+        # del self._thread

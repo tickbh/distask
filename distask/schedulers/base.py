@@ -41,7 +41,6 @@ class Scheduler(ABC):
             logging.debug('Scheduler is paused -- not processing jobs')
             return None
 
-        logging.debug('Looking for jobs to run')
         now = util.micro_now()
         next_wakeup_time = now + 6_000
         jobs = []

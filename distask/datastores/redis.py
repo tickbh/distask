@@ -38,7 +38,7 @@ class RedisDataStore(DataStore):
     def get_jobs(self, scheduler, now, limit=None):
         job_ids = self._client.zrangebyscore(self._run_times_key, 0, now)
         if not job_ids:
-            return []
+            return [], None
         filter_jobs = []
         need_del_jobs = []
         has_execption = False
