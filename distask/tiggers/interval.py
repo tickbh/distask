@@ -14,6 +14,8 @@ class IntervalTigger(Tigger):
         if minutes: self.microseconds = minutes * 60_000 + self.microseconds
         if hours: self.microseconds = hours * 3600_000 + self.microseconds
         if days: self.microseconds = days * 86400_000 + self.microseconds
+
+        self.microseconds = int(self.microseconds)
         if not self.microseconds:
             raise AttributeError("not vaild interval")
 
@@ -36,4 +38,4 @@ class IntervalTigger(Tigger):
 
     def __setstate__(self, state):
         """Restore state from the unpickled state values."""  
-        self.microseconds = state
+        self.microseconds = int(state)
