@@ -12,10 +12,11 @@ DEFAULT_RLLOCK_NAME = "default_distributed_lock"
 class RLLock(BaseLock):
     _lock = None
     def __init__(self, **kwargs):
+        lock_key = kwargs.pop("lock_key", DEFAULT_RLLOCK_NAME)
         if kwargs.pop("reentrant", None):
-            self._lock = ReentrantRedLock(DEFAULT_RLLOCK_NAME, **kwargs)
+            self._lock = ReentrantRedLock(lock_key, **kwargs)
         else:
-            self._lock = RedLock(DEFAULT_RLLOCK_NAME, **kwargs)
+            self._lock = RedLock(lock_key, **kwargs)
 
     def lock(self, timeout: float = None, blocking=False):
         if not timeout:

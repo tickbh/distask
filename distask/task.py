@@ -30,7 +30,7 @@ class Job:
     deal_max_time: int = field(init=False, default=60_000)
     close_now: bool = field(init=False, default=False)
 
-    def __init__(self, func, tigger, args=None, job_id=None, next_time=None, group='', subgroup='', status_last_time=0, **kwargs):
+    def __init__(self, func, tigger, args=None, job_id=None, next_time=None, group='', subgroup='', status_last_time=0, deal_max_time= 60_000, **kwargs):
         
         if tigger == "interval":
             self.tigger = IntervalTigger(**kwargs)
@@ -54,6 +54,7 @@ class Job:
         else:
             self.job_id = job_id
 
+        self.deal_max_time = deal_max_time
         self.next_time = self.tigger.get_next_time()[0]
         self.group = group
         self.subgroup = subgroup

@@ -1,3 +1,4 @@
+from email import utils
 import logging
 import re
 from typing import Optional
@@ -54,7 +55,11 @@ class RedisDataStore(DataStore):
 
             if scheduler._subgroups and not subgroup in scheduler._subgroups:
                 continue
-
+            
+            status_last_time = bytes_to_int(self._client.hget(job_id, "status_last_time")) or 0
+            if status_last_time > util.micro_now():
+                continue
+            
             filter_jobs.append(job_id)
 
             if limit and limit > 0 and len(filter_jobs) >= limit:
